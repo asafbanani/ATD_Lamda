@@ -1,4 +1,4 @@
-import logo from '../assets/atd-logo.svg'
+import logo from '../assets/atd_logo.svg'
 import '../App.css'
 
 type SignupProps = {

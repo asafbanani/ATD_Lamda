@@ -63,16 +63,14 @@
 }
 
 .logo-mark {
-  width: 88px;
-  height: 88px;
-  border-radius: 18px;
-  background: #f5f8ff;
-  padding: 10px;
-  box-shadow:
-    0 12px 32px rgba(56, 98, 160, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  width: 120px;
+  height: auto;
+  display: block;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   object-fit: contain;
-  border: 1px solid #dfe6f5;
 }
 
 .login-form {
