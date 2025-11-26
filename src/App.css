@@ -141,26 +141,26 @@ button {
 }
 
 .primary {
-  background: linear-gradient(135deg, #4f7fd8, #6fa6e9);
+  background: linear-gradient(135deg, #8b4bff, #d74cc4);
   color: #ffffff;
   padding: 14px 18px;
-  box-shadow: 0 12px 30px rgba(79, 127, 216, 0.25);
+  box-shadow: 0 12px 30px rgba(215, 76, 196, 0.28);
 }
 
 .primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 14px 36px rgba(79, 127, 216, 0.32);
+  box-shadow: 0 14px 36px rgba(215, 76, 196, 0.36);
 }
 
 .secondary {
-  background: #eff3fb;
-  color: #2f4368;
+  background: linear-gradient(135deg, #2b1c52, #3c1f61);
+  color: #e9ddff;
   padding: 14px 18px;
-  border: 1px solid #d8e1f1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .secondary:hover {
-  background: #e6edf9;
+  background: linear-gradient(135deg, #332165, #4a2978);
 }
 
 .text-button {

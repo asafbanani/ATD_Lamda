@@ -17,7 +17,7 @@ function Login({ onShowSignup }: LoginProps) {
           <img src={logo} alt="ATD Lamda logo" className="logo-mark" />
           <h1>Welcome back</h1>
           <p className="lede">
-            Sign in to access your workspace.
+            Log in to manage your classes, track your progress, and stay connected with your tutor.
           </p>
         </div>
 

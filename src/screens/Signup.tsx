@@ -16,8 +16,7 @@ function Signup({ onShowLogin }: SignupProps) {
           <img src={logo} alt="ATD Lamda logo" className="logo-mark" />
           <h1>Create your account</h1>
           <p className="lede">
-            Start fresh, Tell us a few details and you will be inside
-            in no time.
+            Start your learning journey, reserve classes, and collaborate with your tutors in one place.
           </p>
         </div>
 
