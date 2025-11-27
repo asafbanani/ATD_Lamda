@@ -31,6 +31,10 @@ function TeacherView({
   const selectedClass = classes.find((cls) => cls.id === selectedClassId)
   const [pendingCharges, setPendingCharges] = useState<Record<string, "half" | "full">>({})
   const [sentCharges, setSentCharges] = useState<Record<string, "half" | "full">>({})
+  const [sendMessage, setSendMessage] = useState<string | null>(null)
+  const hasMarkedAttendance = selectedClass
+    ? Object.values(attendance[selectedClassId] ?? {}).some(Boolean)
+    : false
 
   const clearChargesForClass = (classId: string) => {
     setPendingCharges((prev) => {
@@ -47,6 +51,7 @@ function TeacherView({
       })
       return next
     })
+    setSendMessage(null)
   }
 
   return (
@@ -119,10 +124,13 @@ function TeacherView({
                 sentCharge={sentCharge}
                 onToggleAttendance={() => onToggleAttendance(selectedClassId, studentId)}
                 onSetPendingCharge={(amount) =>
-                  setPendingCharges((prev) => ({
-                    ...prev,
-                    [key]: amount,
-                  }))
+                  setPendingCharges((prev) => {
+                    setSendMessage(null)
+                    return {
+                      ...prev,
+                      [key]: amount,
+                    }
+                  })
                 }
               />
             )
@@ -143,13 +151,15 @@ function TeacherView({
               // future: send to admin ledger with pendingCharges
               setSentCharges((prev) => ({ ...prev, ...pendingCharges }))
               setPendingCharges({})
+              setSendMessage("\u05e2\u05d3\u05db\u05d5\u05df \u05e0\u05d5\u05db\u05d7\u05d5\u05ea \u05e0\u05e9\u05dc\u05d7 \u05dc\u05d0\u05d3\u05de\u05d9\u05df")
             }}
           >
             {"\u05e9\u05dc\u05d7 \u05d7\u05d9\u05d5\u05d1\u05d9\u05dd \u05de\u05de\u05ea\u05d9\u05e0\u05d9\u05dd"}
           </button>
-          {Object.keys(pendingCharges).length === 0 && (
+          {!hasMarkedAttendance && Object.keys(pendingCharges).length === 0 && (
             <span className="muted">{"\u05d0\u05d9\u05df \u05d7\u05d9\u05d5\u05d1\u05d9\u05dd \u05d0\u05d5 \u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05e0\u05d1\u05d7\u05e8\u05d9\u05dd"}</span>
           )}
+          {sendMessage && <span className="muted">{sendMessage}</span>}
         </div>
       </div>
     </div>

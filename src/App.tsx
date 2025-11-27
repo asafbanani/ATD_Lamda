@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from "react"
 import "./App.css"
 import QuickMenu from "./components/layout/QuickMenu"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
-import type { AttendanceMap, ClassSlot, Role, Student } from "./models/types"
+import type { AttendanceMap, ClassSlot, PaymentAction, PaymentMethod, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
+import AccountsView from "./screens/AccountsView"
 import TeacherView from "./screens/TeacherView"
 
 function App() {
   const teacherName = "\u05d9\u05e2\u05dc \u05d1\u05e8\u05d2\u05e8"
   const [role, setRole] = useState<Role>("admin")
-  const [students] = useState<Student[]>(initialStudents)
+  const [students, setStudents] = useState<Student[]>(initialStudents)
   const [classes, setClasses] = useState<ClassSlot[]>(initialClasses)
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "")
   const [attendance, setAttendance] = useState<AttendanceMap>(initialAttendance)
+  const [adminView, setAdminView] = useState<"calendar" | "accounts">("calendar")
 
   const teacherClasses = useMemo(
     () => classes.filter((cls) => cls.teacher === teacherName),
@@ -35,6 +37,16 @@ function App() {
     if (!selectedClass) return []
     return students.filter((student) => !selectedClass.students.includes(student.id))
   }, [students, selectedClass])
+
+  const menuItems = useMemo(
+    () => [
+      { key: "calendar", label: "\u05db\u05d9\u05ea\u05d5\u05ea" },
+      { key: "accounts", label: "\u05db\u05e8\u05d8\u05e1\u05ea \u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea" },
+    ],
+    [],
+  )
+
+  const handleAdminNav = (key: string) => setAdminView(key === "accounts" ? "accounts" : "calendar")
 
   const toggleAttendance = (classId: string, studentId: string) => {
     setAttendance((prev) => ({
@@ -69,6 +81,19 @@ function App() {
     }))
   }
 
+  const applyPayments = (payments: PaymentAction[]) => {
+    if (payments.length === 0) return
+    setStudents((prev) =>
+      prev.map((student) => {
+        const payment = payments.find((p) => p.studentId === student.id)
+        if (!payment) return student
+        const amountToSubtract = payment.type === "partial" && payment.amount ? payment.amount : student.balance
+        const nextBalance = Math.max(0, student.balance - amountToSubtract)
+        return { ...student, balance: nextBalance, lastPaymentMethod: payment.method }
+      }),
+    )
+  }
+
   return (
     <div className="page">
       <div className="glow glow-1" />
@@ -82,7 +107,9 @@ function App() {
           </div>
 
           <div className="top-actions">
-            {role === "admin" && <QuickMenu />}
+            {role === "admin" && (
+              <QuickMenu items={menuItems} activeKey={adminView} onSelect={handleAdminNav} />
+            )}
             <div className="role-switch">
               <button
                 type="button"
@@ -103,12 +130,16 @@ function App() {
         </header>
 
         {role === "admin" ? (
-          <AdminDashboard
-            classes={classes}
-            students={students}
-            selectedClassId={selectedClassId}
-            onOpenClass={setSelectedClassId}
-          />
+          adminView === "accounts" ? (
+            <AccountsView students={students} onApplyPayments={applyPayments} />
+          ) : (
+            <AdminDashboard
+              classes={classes}
+              students={students}
+              selectedClassId={selectedClassId}
+              onOpenClass={setSelectedClassId}
+            />
+          )
         ) : (
           <TeacherView
             classes={teacherClasses}

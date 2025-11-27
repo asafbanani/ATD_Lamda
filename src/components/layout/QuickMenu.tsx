@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 
-function QuickMenu() {
+type MenuItem = {
+  key: string
+  label: string
+}
+
+type QuickMenuProps = {
+  items: MenuItem[]
+  activeKey?: string
+  onSelect: (key: string) => void
+}
+
+function QuickMenu({ items, activeKey, onSelect }: QuickMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
 
@@ -14,8 +25,6 @@ function QuickMenu() {
     document.addEventListener("mousedown", close)
     return () => document.removeEventListener("mousedown", close)
   }, [open])
-
-  const items = ["\u05db\u05d9\u05ea\u05d5\u05ea", "\u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd", "\u05d3\u05d5\u05d7 X", "\u05d3\u05d5\u05d7 Z", "\u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea"]
 
   return (
     <div className="menu" ref={ref}>
@@ -32,8 +41,16 @@ function QuickMenu() {
       {open && (
         <div className="menu-dropdown">
           {items.map((item) => (
-            <button key={item} type="button" className="menu-item" onClick={() => setOpen(false)}>
-              {item}
+            <button
+              key={item.key}
+              type="button"
+              className={item.key === activeKey ? "menu-item active" : "menu-item"}
+              onClick={() => {
+                onSelect(item.key)
+                setOpen(false)
+              }}
+            >
+              {item.label}
             </button>
           ))}
         </div>

@@ -1,5 +1,8 @@
 export type Role = 'admin' | 'teacher'
 
+export type PaymentMethod = "cash" | "bank" | "credit" | "check"
+export type PaymentAction = { studentId: string; method: PaymentMethod; type: "full" | "partial"; amount?: number }
+
 export type Student = {
   id: string
   fullName: string
@@ -7,6 +10,7 @@ export type Student = {
   email?: string
   hours: number
   balance: number
+  lastPaymentMethod?: PaymentMethod
 }
 
 export type ClassSlot = {

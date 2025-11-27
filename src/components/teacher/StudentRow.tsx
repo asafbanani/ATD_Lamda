@@ -36,19 +36,19 @@ function StudentRow({
         {isPresent &&
           (sentCharge ? (
             <span className="badge">
-              {"\u05d7\u05d9\u05d5\u05d1 \u05e0\u05e9\u05dc\u05d7"} - {sentCharge === "full" ? "\u05ea\u05e9\u05dc\u05d5\u05dd \u05de\u05dc\u05d0" : "\u05d7\u05e6\u05d9 \u05ea\u05e9\u05dc\u05d5\u05dd"}
+              {"\u05d7\u05d9\u05d5\u05d1 \u05e0\u05e9\u05dc\u05d7"} - {sentCharge === "full" ? "\u05e9\u05d9\u05e2\u05d5\u05e8 \u05de\u05dc\u05d0" : "\u05d7\u05e6\u05d9 \u05e9\u05d9\u05e2\u05d5\u05e8"}
             </span>
           ) : pendingCharge ? (
             <span className="badge">
-              {"\u05d7\u05d9\u05d5\u05d1 \u05de\u05de\u05ea\u05d9\u05df"} - {pendingCharge === "full" ? "\u05ea\u05e9\u05dc\u05d5\u05dd \u05de\u05dc\u05d0" : "\u05d7\u05e6\u05d9 \u05ea\u05e9\u05dc\u05d5\u05dd"}
+              {"\u05d7\u05d9\u05d5\u05d1 \u05de\u05de\u05ea\u05d9\u05df"} - {pendingCharge === "full" ? "\u05e9\u05d9\u05e2\u05d5\u05e8 \u05de\u05dc\u05d0" : "\u05d7\u05e6\u05d9 \u05e9\u05d9\u05e2\u05d5\u05e8"}
             </span>
           ) : (
             <>
               <button type="button" className="pill secondary" onClick={() => onSetPendingCharge("half")}>
-                {"\u05d7\u05e6\u05d9 \u05ea\u05e9\u05dc\u05d5\u05dd"}
+                {"\u05d7\u05e6\u05d9 \u05e9\u05d9\u05e2\u05d5\u05e8"}
               </button>
               <button type="button" className="pill primary" onClick={() => onSetPendingCharge("full")}>
-                {"\u05ea\u05e9\u05dc\u05d5\u05dd \u05de\u05dc\u05d0"}
+                {"\u05e9\u05d9\u05e2\u05d5\u05e8 \u05de\u05dc\u05d0"}
               </button>
             </>
           ))}
