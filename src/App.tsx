@@ -1,5 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import "./App.css"
+import QuickMenu from "./components/layout/QuickMenu"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
 import type { AttendanceMap, ClassSlot, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
@@ -8,7 +9,7 @@ import TeacherView from "./screens/TeacherView"
 function App() {
   const teacherName = "\u05d9\u05e2\u05dc \u05d1\u05e8\u05d2\u05e8"
   const [role, setRole] = useState<Role>("admin")
-  const [students, setStudents] = useState<Student[]>(initialStudents)
+  const [students] = useState<Student[]>(initialStudents)
   const [classes, setClasses] = useState<ClassSlot[]>(initialClasses)
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "")
   const [attendance, setAttendance] = useState<AttendanceMap>(initialAttendance)
@@ -34,12 +35,6 @@ function App() {
     if (!selectedClass) return []
     return students.filter((student) => !selectedClass.students.includes(student.id))
   }, [students, selectedClass])
-
-  const markPaid = (studentId: string) => {
-    setStudents((prev) =>
-      prev.map((student) => (student.id === studentId ? { ...student, balance: 0 } : student)),
-    )
-  }
 
   const toggleAttendance = (classId: string, studentId: string) => {
     setAttendance((prev) => ({
@@ -86,21 +81,24 @@ function App() {
             <h1>{"\u05de\u05e8\u05db\u05d6 \u05d4\u05e9\u05dc\u05d9\u05d8\u05d4"}</h1>
           </div>
 
-          <div className="role-switch">
-            <button
-              type="button"
-              className={role === "admin" ? "pill active" : "pill"}
-              onClick={() => setRole("admin")}
-            >
-              {"\u05d0\u05d3\u05de\u05d9\u05df"}
-            </button>
-            <button
-              type="button"
-              className={role === "teacher" ? "pill active" : "pill"}
-              onClick={() => setRole("teacher")}
-            >
-              {"\u05de\u05d5\u05e8\u05d4"}
-            </button>
+          <div className="top-actions">
+            {role === "admin" && <QuickMenu />}
+            <div className="role-switch">
+              <button
+                type="button"
+                className={role === "admin" ? "pill active" : "pill"}
+                onClick={() => setRole("admin")}
+              >
+                {"\u05d0\u05d3\u05de\u05d9\u05df"}
+              </button>
+              <button
+                type="button"
+                className={role === "teacher" ? "pill active" : "pill"}
+                onClick={() => setRole("teacher")}
+              >
+                {"\u05de\u05d5\u05e8\u05d4"}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -108,7 +106,7 @@ function App() {
           <AdminDashboard
             classes={classes}
             students={students}
-            onMarkPaid={markPaid}
+            selectedClassId={selectedClassId}
             onOpenClass={setSelectedClassId}
           />
         ) : (

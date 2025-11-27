@@ -63,6 +63,12 @@
   letter-spacing: -0.02em;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .role-switch {
   display: flex;
   gap: 10px;
@@ -95,6 +101,11 @@
   border: 1px solid #dce7f7;
 }
 
+.badge.subtle {
+  background: #f8fbff;
+  color: #3f567c;
+}
+
 .badge.warning {
   background: #fff5ec;
   color: #a34b14;
@@ -125,6 +136,74 @@
 
 button {
   border: none;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu-button {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid #d4def3;
+  background: #f7f9ff;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-button span {
+  width: 22px;
+  height: 2px;
+  background: #1e2f57;
+  border-radius: 999px;
+  display: block;
+}
+
+.menu-button.open {
+  background: linear-gradient(135deg, #3f6fd2, #2b4f95);
+  border-color: transparent;
+}
+
+.menu-button.open span {
+  background: #ffffff;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 54px;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #dce7f7;
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(34, 73, 136, 0.18);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  z-index: 2;
+}
+
+.menu-item {
+  background: #f8fbff;
+  border: 1px solid #e3ebfb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: #1e2f57;
+  cursor: pointer;
+  text-align: right;
+  transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+  background: #edf3ff;
+  box-shadow: 0 8px 18px rgba(34, 73, 136, 0.12);
 }
 
 .grid {
@@ -393,8 +472,144 @@ select {
   background: #ffffff;
 }
 
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.day-column {
+  border: 1px solid #e2ebf9;
+  border-radius: 20px;
+  padding: 14px;
+  background: #f9fbff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slot-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.slot-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #d6e2f8;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.slot-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(41, 86, 150, 0.1);
+}
+
+.slot-card.active {
+  border-color: #3f6fd2;
+  box-shadow: 0 12px 24px rgba(63, 111, 210, 0.16);
+}
+
+.slot-time {
+  font-weight: 800;
+  color: #2b4f95;
+}
+
+.slot-main strong {
+  display: block;
+}
+
+.slot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  color: #3f567c;
+  font-weight: 700;
+}
+
+.empty-slot {
+  border: 1px dashed #d6e2f8;
+  border-radius: 12px;
+  padding: 12px;
+  color: #56617b;
+  background: #ffffff;
+}
+
+.detail-panel {
+  position: relative;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.detail-item {
+  border: 1px solid #e6edfb;
+  border-radius: 12px;
+  padding: 10px;
+  background: #f9fbff;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.student-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #e6edfb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 12px;
+  color: #56617b;
+}
+
 @media (max-width: 980px) {
-  .grid {
+  .grid,
+  .calendar-layout {
     grid-template-columns: 1fr;
   }
 

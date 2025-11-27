@@ -1,4 +1,6 @@
-﻿import { useState } from "react"
+import { useState } from "react"
+import AddExistingStudent from "../components/teacher/AddExistingStudent"
+import StudentRow from "../components/teacher/StudentRow"
 import type { AttendanceMap, ClassSlot, Student } from "../models/types"
 
 type TeacherViewProps = {
@@ -30,11 +32,28 @@ function TeacherView({
   const [pendingCharges, setPendingCharges] = useState<Record<string, "half" | "full">>({})
   const [sentCharges, setSentCharges] = useState<Record<string, "half" | "full">>({})
 
+  const clearChargesForClass = (classId: string) => {
+    setPendingCharges((prev) => {
+      const next = { ...prev }
+      Object.keys(next).forEach((key) => {
+        if (key.startsWith(`${classId}-`)) delete next[key]
+      })
+      return next
+    })
+    setSentCharges((prev) => {
+      const next = { ...prev }
+      Object.keys(next).forEach((key) => {
+        if (key.startsWith(`${classId}-`)) delete next[key]
+      })
+      return next
+    })
+  }
+
   return (
     <div className="panel teacher-card">
       <div className="weekly-strip">
         <div>
-          <p className="eyebrow">{"יום שבועי למורה"}</p>
+          <p className="eyebrow">{"\u05de\u05e1\u05da \u05de\u05d5\u05e8\u05d4"}</p>
           <h3>{teacherName ?? selectedClass?.teacher}</h3>
         </div>
         <div className="chip-row">
@@ -53,21 +72,21 @@ function TeacherView({
 
       <div className="section-head">
         <div>
-          <p className="eyebrow">{"מסך מורה"}</p>
-          <h2>{selectedClass?.name ?? "כיתה"}</h2>
+          <p className="eyebrow">{"\u05db\u05d9\u05ea\u05d4 \u05e0\u05d5\u05db\u05d7\u05d9\u05ea"}</p>
+          <h2>{selectedClass?.name ?? "\u05d1\u05d7\u05e8\u05d5 \u05db\u05d9\u05ea\u05d4"}</h2>
           <p className="muted">
             {selectedClass?.teacher} | {selectedClass?.day} | {selectedClass?.time}
           </p>
         </div>
         <div className="class-meta">
-          <div className="badge">{"שיעור קבוע"}</div>
+          <div className="badge">{"\u05e0\u05d5\u05db\u05d7\u05d5\u05ea \u05d7\u05d9\u05d9\u05d4"}</div>
           <div className="badge">{selectedClass?.room}</div>
         </div>
       </div>
 
       <div className="attendance">
         <div className="attendance-head">
-          <h3>{"נוכחות"}</h3>
+          <h3>{"\u05e0\u05d5\u05db\u05d7\u05d5\u05ea"}</h3>
           <div className="attendance-actions">
             <button
               type="button"
@@ -75,23 +94,10 @@ function TeacherView({
               onClick={() => {
                 if (!selectedClass) return
                 onClearClass(selectedClass.id)
-                setPendingCharges((prev) => {
-                  const next = { ...prev }
-                  Object.keys(next).forEach((key) => {
-                    if (key.startsWith(`${selectedClass.id}-`)) delete next[key]
-                  })
-                  return next
-                })
-                setSentCharges((prev) => {
-                  const next = { ...prev }
-                  Object.keys(next).forEach((key) => {
-                    if (key.startsWith(`${selectedClass.id}-`)) delete next[key]
-                  })
-                  return next
-                })
+                clearChargesForClass(selectedClass.id)
               }}
             >
-              {"נקה"}
+              {"\u05d0\u05d9\u05e4\u05d5\u05e1"}
             </button>
           </div>
         </div>
@@ -104,62 +110,21 @@ function TeacherView({
             const pendingCharge = pendingCharges[key]
             const sentCharge = sentCharges[key]
             return (
-              <div key={studentId} className="student-row">
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isPresent}
-                    onChange={() => onToggleAttendance(selectedClassId, studentId)}
-                  />
-                  <span />
-                </label>
-                <div className="student-meta">
-                  <strong>{student?.fullName ?? "תלמיד"}</strong>
-                  <p className="muted">{student?.phone}</p>
-                </div>
-                <span className={`status ${isPresent ? "ok" : "pending"}`}>
-                  {isPresent ? "הגיע" : "ממתין"}
-                </span>
-                <div className="charge-actions">
-                  {isPresent &&
-                    (sentCharge ? (
-                      <span className="badge">
-                        {"נשלח לאדמין"} · {sentCharge === "full" ? "שיעור מלא" : "חצי שיעור"}
-                      </span>
-                    ) : pendingCharge ? (
-                      <span className="badge">
-                        {"מוכן לשליחה"} · {pendingCharge === "full" ? "שיעור מלא" : "חצי שיעור"}
-                      </span>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className="pill secondary"
-                          onClick={() =>
-                            setPendingCharges((prev) => ({
-                              ...prev,
-                              [key]: "half",
-                            }))
-                          }
-                        >
-                          {"חצי שיעור"}
-                        </button>
-                        <button
-                          type="button"
-                          className="pill primary"
-                          onClick={() =>
-                            setPendingCharges((prev) => ({
-                              ...prev,
-                              [key]: "full",
-                            }))
-                          }
-                        >
-                          {"שיעור מלא"}
-                        </button>
-                      </>
-                    ))}
-                </div>
-              </div>
+              <StudentRow
+                key={studentId}
+                student={student}
+                studentId={studentId}
+                isPresent={isPresent}
+                pendingCharge={pendingCharge}
+                sentCharge={sentCharge}
+                onToggleAttendance={() => onToggleAttendance(selectedClassId, studentId)}
+                onSetPendingCharge={(amount) =>
+                  setPendingCharges((prev) => ({
+                    ...prev,
+                    [key]: amount,
+                  }))
+                }
+              />
             )
           })}
         </div>
@@ -180,78 +145,12 @@ function TeacherView({
               setPendingCharges({})
             }}
           >
-            {"שלח חיובים לאדמין"}
+            {"\u05e9\u05dc\u05d7 \u05d7\u05d9\u05d5\u05d1\u05d9\u05dd \u05de\u05de\u05ea\u05d9\u05e0\u05d9\u05dd"}
           </button>
           {Object.keys(pendingCharges).length === 0 && (
-            <span className="muted">{"בחר חצי/מלא כדי לשלוח חיובים"}</span>
+            <span className="muted">{"\u05d0\u05d9\u05df \u05d7\u05d9\u05d5\u05d1\u05d9\u05dd \u05d0\u05d5 \u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05e0\u05d1\u05d7\u05e8\u05d9\u05dd"}</span>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
-
-type AddExistingStudentProps = {
-  availableStudents: Student[]
-  onAdd: (studentId: string) => void
-}
-
-function AddExistingStudent({ availableStudents, onAdd }: AddExistingStudentProps) {
-  const [query, setQuery] = useState("")
-  const [selectedId, setSelectedId] = useState("")
-
-  const filtered = availableStudents.filter(
-    (student) =>
-      student.fullName.includes(query) ||
-      student.phone.includes(query) ||
-      student.email?.includes(query),
-  )
-
-  return (
-    <div className="add-student">
-      <div>
-        <p className="eyebrow">{"הוספת תלמיד קיים"}</p>
-        <p className="muted">{"חיפוש מתוך המערכת והוספה לכיתה הנוכחית"}</p>
-      </div>
-      <div className="add-controls">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder={"הקלד שם / טלפון"}
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value)
-              setSelectedId("")
-            }}
-            list="student-options"
-          />
-          <datalist id="student-options">
-            {filtered.map((student) => (
-              <option key={student.id} value={student.fullName} />
-            ))}
-          </datalist>
-        </div>
-        <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
-          <option value="">{'בחר תלמיד'}</option>
-          {filtered.map((student) => (
-            <option key={student.id} value={student.id}>
-              {student.fullName} | {student.phone}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="pill primary"
-          disabled={!selectedId}
-          onClick={() => {
-            if (!selectedId) return
-            onAdd(selectedId)
-            setSelectedId("")
-            setQuery("")
-          }}
-        >
-          {"הוסף"}
-        </button>
       </div>
     </div>
   )
