@@ -712,6 +712,89 @@ select {
   font-size: 12px;
 }
 
+.students-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.students-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+}
+
+.students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-tile {
+  width: 100%;
+  text-align: right;
+  border: 1px solid #e3ebfb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-tile:hover {
+  background: #f6f9ff;
+}
+
+.student-tile.active {
+  border-color: #3f6fd2;
+  box-shadow: 0 8px 20px rgba(47, 94, 176, 0.16);
+}
+
+.students-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-card,
+.add-student-card {
+  border: 1px solid #e6edfb;
+  border-radius: 16px;
+  padding: 16px;
+  background: #f9fbff;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #1e2f57;
+}
+
+.form-grid input {
+  border: 1px solid #d8e4fb;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 12px;
@@ -751,5 +834,9 @@ select {
 
   select {
     width: 100%;
+  }
+
+  .students-layout {
+    grid-template-columns: 1fr;
   }
 }

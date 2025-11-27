@@ -5,6 +5,7 @@ import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
 import type { AttendanceMap, ClassSlot, PaymentAction, PaymentMethod, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
 import AccountsView from "./screens/AccountsView"
+import StudentsView from "./screens/StudentsView"
 import TeacherView from "./screens/TeacherView"
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
   const [classes, setClasses] = useState<ClassSlot[]>(initialClasses)
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "")
   const [attendance, setAttendance] = useState<AttendanceMap>(initialAttendance)
-  const [adminView, setAdminView] = useState<"calendar" | "accounts">("calendar")
+  const [adminView, setAdminView] = useState<"calendar" | "accounts" | "students">("calendar")
 
   const teacherClasses = useMemo(
     () => classes.filter((cls) => cls.teacher === teacherName),
@@ -42,11 +43,15 @@ function App() {
     () => [
       { key: "calendar", label: "\u05db\u05d9\u05ea\u05d5\u05ea" },
       { key: "accounts", label: "\u05db\u05e8\u05d8\u05e1\u05ea \u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea" },
+      { key: "students", label: "\u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd" },
     ],
     [],
   )
 
-  const handleAdminNav = (key: string) => setAdminView(key === "accounts" ? "accounts" : "calendar")
+  const handleAdminNav = (key: string) => {
+    if (key === "accounts" || key === "students" || key === "calendar") setAdminView(key)
+    else setAdminView("calendar")
+  }
 
   const toggleAttendance = (classId: string, studentId: string) => {
     setAttendance((prev) => ({
@@ -94,6 +99,36 @@ function App() {
     )
   }
 
+  const updateStudent = (id: string, data: Partial<Student>) => {
+    setStudents((prev) =>
+      prev.map((student) => (student.id === id ? { ...student, ...data, fullName: data.fullName ?? student.fullName } : student)),
+    )
+  }
+
+  const addNewStudent = (data: {
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string
+    parentName?: string
+    parentPhone?: string
+  }) => {
+    const fullName = [data.firstName, data.lastName].filter(Boolean).join(" ").trim()
+    const newStudent: Student = {
+      id: `s${Date.now()}`,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      fullName: fullName || data.firstName || data.lastName || "Student",
+      phone: data.phone,
+      email: data.email,
+      parentName: data.parentName,
+      parentPhone: data.parentPhone,
+      hours: 0,
+      balance: 0,
+    }
+    setStudents((prev) => [...prev, newStudent])
+  }
+
   return (
     <div className="page">
       <div className="glow glow-1" />
@@ -132,6 +167,8 @@ function App() {
         {role === "admin" ? (
           adminView === "accounts" ? (
             <AccountsView students={students} onApplyPayments={applyPayments} />
+          ) : adminView === "students" ? (
+            <StudentsView students={students} onAddStudent={addNewStudent} onUpdateStudent={updateStudent} />
           ) : (
             <AdminDashboard
               classes={classes}

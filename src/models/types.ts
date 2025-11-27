@@ -5,9 +5,13 @@ export type PaymentAction = { studentId: string; method: PaymentMethod; type: "f
 
 export type Student = {
   id: string
+  firstName?: string
+  lastName?: string
   fullName: string
   phone: string
   email?: string
+  parentName?: string
+  parentPhone?: string
   hours: number
   balance: number
   lastPaymentMethod?: PaymentMethod
