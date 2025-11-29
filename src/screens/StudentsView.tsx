@@ -207,7 +207,7 @@ function StudentsView({ students, onAddStudent, onUpdateStudent }: StudentsViewP
 
           {showForm && (
             <div className="add-student-card">
-              <h3>{"\u05d4\u05d5\u05e1\u05e4\u05ea \u05ea\u05dc\u05de\u05d9\u05d3 \u05d7\u05d3"}</h3>
+              <h3>{"\u05d4\u05d5\u05e1\u05e4\u05ea \u05ea\u05dc\u05de\u05d9\u05d3 \u05d7\u05d3\u05e9"}</h3>
               <div className="form-grid">
                 <label>
                   {"\u05e9\u05dd \u05e4\u05e8\u05d8\u05d9"}
