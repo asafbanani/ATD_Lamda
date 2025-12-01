@@ -20,10 +20,6 @@ function ClassDetails({ selectedClass, selectedStudents, nextDate }: ClassDetail
   return (
     <>
       <p className="eyebrow">{"\u05e4\u05e8\u05d8\u05d9 \u05db\u05d9\u05ea\u05d4"}</p>
-      <h2>{selectedClass.name}</h2>
-      <p className="muted">
-        {selectedClass.teacher} | {selectedClass.day} | {selectedClass.time}
-      </p>
 
       <div className="detail-grid">
         <DetailItem label={"\u05de\u05d5\u05e8\u05d4"} value={selectedClass.teacher} />

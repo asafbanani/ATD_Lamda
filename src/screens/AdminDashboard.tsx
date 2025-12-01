@@ -8,6 +8,8 @@ type AdminDashboardProps = {
   students: Student[]
   selectedClassId?: string
   onOpenClass: (classId: string) => void
+  showClassModal: boolean
+  onCloseClassModal: () => void
 }
 
 const dayOrder = ["\u05e8\u05d0\u05e9\u05d5\u05df", "\u05e9\u05e0\u05d9", "\u05e9\u05dc\u05d9\u05e9\u05d9", "\u05e8\u05d1\u05d9\u05e2\u05d9", "\u05d7\u05de\u05d9\u05e9\u05d9", "\u05e9\u05d9\u05e9\u05d9"]
@@ -21,7 +23,7 @@ const dayToIndex: Record<string, number> = {
   ["\u05e9\u05d1\u05ea"]: 6,
 }
 
-function AdminDashboard({ classes, students, selectedClassId, onOpenClass }: AdminDashboardProps) {
+function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showClassModal, onCloseClassModal }: AdminDashboardProps) {
   const selectedClass = useMemo(
     () => classes.find((cls) => cls.id === selectedClassId) ?? classes[0],
     [classes, selectedClassId],
@@ -58,35 +60,59 @@ function AdminDashboard({ classes, students, selectedClassId, onOpenClass }: Adm
   const nextDate = selectedClass ? formatNextDate(selectedClass.day) : null
 
   return (
-    <div className="calendar-layout">
-      <section className="panel calendar-panel">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">{"\u05d9\u05d5\u05de\u05df \u05e9\u05d1\u05d5\u05e2\u05d9"}</p>
-            <h2>{"\u05dc\u05d5\u05d7 \u05d4\u05e9\u05d1\u05d5\u05e2"}</h2>
-            <p className="muted">{"\u05db\u05d9\u05ea\u05d5\u05ea \u05e2\u05dd \u05de\u05d5\u05e8\u05d9\u05dd \u05d5\u05d1\u05dc\u05d5\u05d7\u05d9\u05dd \u05d4\u05ea\u05d0\u05d9\u05de\u05d9\u05dd"}</p>
+    <>
+      <div className="calendar-layout">
+        <section className="panel calendar-panel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">{"\u05d9\u05d5\u05de\u05df \u05e9\u05d1\u05d5\u05e2\u05d9"}</p>
+              <h2>{"\u05dc\u05d5\u05d7 \u05d4\u05e9\u05d1\u05d5\u05e2"}</h2>
+              <p className="muted">{"\u05db\u05d9\u05ea\u05d5\u05ea \u05e2\u05dd \u05de\u05d5\u05e8\u05d9\u05dd \u05d5\u05d1\u05dc\u05d5\u05d7\u05d9\u05dd \u05d4\u05ea\u05d0\u05d9\u05de\u05d9\u05dd"}</p>
+            </div>
+            <div className="badge">{`\u05db\u05d9\u05ea\u05d5\u05ea ${classes.length}`}</div>
           </div>
-          <div className="badge">{`\u05db\u05d9\u05ea\u05d5\u05ea ${classes.length}`}</div>
-        </div>
 
-        <div className="calendar-grid">
-          {calendar.map(({ day, slots, date }) => (
-            <CalendarDayColumn
-              key={day}
-              day={day}
-              date={date}
-              slots={slots}
-              selectedClassId={selectedClass?.id}
-              onOpenClass={onOpenClass}
-            />
-          ))}
-        </div>
-      </section>
+          <div className="calendar-grid">
+            {calendar.map(({ day, slots, date }) => (
+              <CalendarDayColumn
+                key={day}
+                day={day}
+                date={date}
+                slots={slots}
+                selectedClassId={selectedClass?.id}
+                onOpenClass={onOpenClass}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
 
-      <section className="panel detail-panel">
-        <ClassDetails selectedClass={selectedClass} selectedStudents={selectedStudents} nextDate={nextDate} />
-      </section>
-    </div>
+      {showClassModal && selectedClass && (
+        <div className="modal-overlay" onClick={onCloseClassModal}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedClass.name}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">
+                  {selectedClass.day}
+                  {nextDate ? ` | ${nextDate}` : ""}
+                </p>
+                <h3>{selectedClass.name}</h3>
+              </div>
+              <button type="button" className="pill ghost" onClick={onCloseClassModal}>
+                {"\u05e1\u05d2\u05d5\u05e8"}
+              </button>
+            </div>
+            <ClassDetails selectedClass={selectedClass} selectedStudents={selectedStudents} nextDate={nextDate} />
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

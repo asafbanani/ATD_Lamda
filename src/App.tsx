@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import "./App.css"
-import QuickMenu from "./components/layout/QuickMenu"
+import logo from "./assets/atd_logo.png"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
 import type { AttendanceMap, ClassSlot, PaymentAction, PaymentMethod, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
@@ -14,6 +14,7 @@ function App() {
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [classes, setClasses] = useState<ClassSlot[]>(initialClasses)
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "")
+  const [showClassModal, setShowClassModal] = useState(false)
   const [attendance, setAttendance] = useState<AttendanceMap>(initialAttendance)
   const [adminView, setAdminView] = useState<"calendar" | "accounts" | "students">("calendar")
 
@@ -32,6 +33,8 @@ function App() {
       const fallback = teacherClasses[0]?.id
       if (fallback) setSelectedClassId(fallback)
     }
+
+    if (role !== "admin") setShowClassModal(false)
   }, [role, teacherClasses, selectedClassId])
 
   const availableStudentsForSelected = useMemo(() => {
@@ -51,6 +54,13 @@ function App() {
   const handleAdminNav = (key: string) => {
     if (key === "accounts" || key === "students" || key === "calendar") setAdminView(key)
     else setAdminView("calendar")
+    if (key !== "calendar") setShowClassModal(false)
+  }
+
+  const openAdminClass = (classId: string) => {
+    setSelectedClassId(classId)
+    setAdminView("calendar")
+    setShowClassModal(true)
   }
 
   const toggleAttendance = (classId: string, studentId: string) => {
@@ -142,9 +152,6 @@ function App() {
           </div>
 
           <div className="top-actions">
-            {role === "admin" && (
-              <QuickMenu items={menuItems} activeKey={adminView} onSelect={handleAdminNav} />
-            )}
             <div className="role-switch">
               <button
                 type="button"
@@ -165,18 +172,42 @@ function App() {
         </header>
 
         {role === "admin" ? (
-          adminView === "accounts" ? (
-            <AccountsView students={students} onApplyPayments={applyPayments} />
-          ) : adminView === "students" ? (
-            <StudentsView students={students} onAddStudent={addNewStudent} onUpdateStudent={updateStudent} />
-          ) : (
-            <AdminDashboard
-              classes={classes}
-              students={students}
-              selectedClassId={selectedClassId}
-              onOpenClass={setSelectedClassId}
-            />
-          )
+          <div className="admin-layout">
+            <aside className="admin-dashboard">
+              <div className="dashboard-logo">
+                <img src={logo} alt="\u05dc\u05d5\u05d2\u05d5 ATD \u05dc\u05de\u05d3\u05d0" />
+              </div>
+              <nav className="dashboard-nav">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={item.key === adminView ? "dashboard-link active" : "dashboard-link"}
+                    onClick={() => handleAdminNav(item.key)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </aside>
+
+            <div className="admin-main">
+              {adminView === "accounts" ? (
+                <AccountsView students={students} onApplyPayments={applyPayments} />
+              ) : adminView === "students" ? (
+                <StudentsView students={students} onAddStudent={addNewStudent} onUpdateStudent={updateStudent} />
+              ) : (
+                <AdminDashboard
+                  classes={classes}
+                  students={students}
+                  selectedClassId={selectedClassId}
+                  onOpenClass={openAdminClass}
+                  showClassModal={showClassModal}
+                  onCloseClassModal={() => setShowClassModal(false)}
+                />
+              )}
+            </div>
+          </div>
         ) : (
           <TeacherView
             classes={teacherClasses}
