@@ -44,9 +44,9 @@ function App() {
 
   const menuItems = useMemo(
     () => [
-      { key: "calendar", label: "\u05db\u05d9\u05ea\u05d5\u05ea" },
-      { key: "accounts", label: "\u05db\u05e8\u05d8\u05e1\u05ea \u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea" },
-      { key: "students", label: "\u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd" },
+      { key: "calendar", label: "\u05db\u05d9\u05ea\u05d5\u05ea", icon: "calendar" },
+      { key: "accounts", label: "\u05db\u05e8\u05d8\u05e1\u05ea \u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea", icon: "accounts" },
+      { key: "students", label: "\u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd", icon: "students" },
     ],
     [],
   )
@@ -185,7 +185,25 @@ function App() {
                     className={item.key === adminView ? "dashboard-link active" : "dashboard-link"}
                     onClick={() => handleAdminNav(item.key)}
                   >
-                    {item.label}
+                    <span className="nav-label">{item.label}</span>
+                    <span className="nav-icon" aria-hidden="true">
+                      {item.icon === "calendar" && (
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v4H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Z" />
+                          <path d="M3 11h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7Zm5 3v2h2v-2H8Zm4 0v2h2v-2h-2Zm4 0v2h2v-2h-2Z" />
+                        </svg>
+                      )}
+                      {item.icon === "accounts" && (
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6.5 3A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8.414a1.5 1.5 0 0 0-.44-1.06l-3.914-3.914A1.5 1.5 0 0 0 13.586 3h-7.086Zm7 0.75L18.25 8.5H14A1.5 1.5 0 0 1 12.5 7V3.75Zm-5 6.75h6a.75.75 0 1 1 0 1.5h-6a.75.75 0 0 1 0-1.5Zm0 3h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5Z" />
+                        </svg>
+                      )}
+                      {item.icon === "students" && (
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 3.5c-1.933 0-3.5 1.567-3.5 3.5S10.067 10.5 12 10.5s3.5-1.567 3.5-3.5S13.933 3.5 12 3.5ZM7 13a3 3 0 0 0-3 3v3h16v-3a3 3 0 0 0-3-3H7Z" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
                 ))}
               </nav>
