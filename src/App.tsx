@@ -2,21 +2,31 @@ import { useEffect, useMemo, useState } from "react"
 import "./App.css"
 import logo from "./assets/atd_logo.png"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
-import type { AttendanceMap, ClassSlot, PaymentAction, PaymentMethod, Role, Student } from "./models/types"
+import type { AttendanceMap, ClassSlot, PaymentAction, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
 import AccountsView from "./screens/AccountsView"
 import StudentsView from "./screens/StudentsView"
 import TeacherView from "./screens/TeacherView"
+import { clampWeekOffset, fromISODate, getDayNameFromDate, getWeekStart, isDateInWeek } from "./utils/dateUtils"
 
 function App() {
   const teacherName = "\u05d9\u05e2\u05dc \u05d1\u05e8\u05d2\u05e8"
   const [role, setRole] = useState<Role>("admin")
+  const normalizeClass = (cls: ClassSlot): ClassSlot => ({
+    ...cls,
+    durationHours: cls.durationHours && cls.durationHours > 0 ? cls.durationHours : 1,
+  })
+
   const [students, setStudents] = useState<Student[]>(initialStudents)
-  const [classes, setClasses] = useState<ClassSlot[]>(initialClasses)
+  const [classes, setClasses] = useState<ClassSlot[]>(initialClasses.map(normalizeClass))
   const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "")
   const [showClassModal, setShowClassModal] = useState(false)
   const [attendance, setAttendance] = useState<AttendanceMap>(initialAttendance)
   const [adminView, setAdminView] = useState<"calendar" | "accounts" | "students">("calendar")
+  const [weekOffset, setWeekOffset] = useState(0)
+  const maxWeekOffset = 4
+
+  const weekStart = useMemo(() => getWeekStart(new Date(), weekOffset), [weekOffset])
 
   const teacherClasses = useMemo(
     () => classes.filter((cls) => cls.teacher === teacherName),
@@ -37,6 +47,17 @@ function App() {
     if (role !== "admin") setShowClassModal(false)
   }, [role, teacherClasses, selectedClassId])
 
+  useEffect(() => {
+    const classesThisWeek = classes.filter((cls) => isDateInWeek(cls.date, weekStart))
+    if (classesThisWeek.length === 0) {
+      setShowClassModal(false)
+      return
+    }
+    if (!classesThisWeek.find((cls) => cls.id === selectedClassId)) {
+      setSelectedClassId(classesThisWeek[0].id)
+    }
+  }, [classes, selectedClassId, weekStart])
+
   const availableStudentsForSelected = useMemo(() => {
     if (!selectedClass) return []
     return students.filter((student) => !selectedClass.students.includes(student.id))
@@ -55,6 +76,10 @@ function App() {
     if (key === "accounts" || key === "students" || key === "calendar") setAdminView(key)
     else setAdminView("calendar")
     if (key !== "calendar") setShowClassModal(false)
+  }
+
+  const handleChangeWeek = (nextOffset: number) => {
+    setWeekOffset(clampWeekOffset(nextOffset, 0, maxWeekOffset))
   }
 
   const openAdminClass = (classId: string) => {
@@ -137,6 +162,55 @@ function App() {
       balance: 0,
     }
     setStudents((prev) => [...prev, newStudent])
+  }
+
+  const handleCreateClass = (payload: {
+    name: string
+    teacher: string
+    room: string
+    date: string
+    time: string
+    durationHours: number
+  }) => {
+    const normalizedDuration = payload.durationHours && payload.durationHours > 0 ? payload.durationHours : 1
+    const timeToMinutes = (timeStr: string) => {
+      const [h, m] = timeStr.split(":").map(Number)
+      return h * 60 + m
+    }
+    const candidateStart = timeToMinutes(payload.time)
+    const candidateEnd = candidateStart + normalizedDuration * 60
+
+    const hasConflict = classes.some((cls) => {
+      if (cls.date !== payload.date) return false
+      if (cls.name !== payload.name) return false
+      const start = timeToMinutes(cls.time)
+      const end = start + (cls.durationHours && cls.durationHours > 0 ? cls.durationHours : 1) * 60
+      return candidateStart < end && candidateEnd > start
+    })
+    if (hasConflict) return
+
+    const targetDate = new Date(payload.date)
+    const dayName = getDayNameFromDate(targetDate) || "\u05d9\u05d5\u05dd"
+    const id = `c${Date.now()}`
+    const newClass: ClassSlot = {
+      id,
+      name: payload.name,
+      teacher: payload.teacher,
+      day: dayName,
+      date: payload.date,
+      time: payload.time,
+      durationHours: normalizedDuration,
+      room: payload.room,
+      students: [],
+    }
+
+    setClasses((prev) => [...prev.map(normalizeClass), normalizeClass(newClass)])
+    setAttendance((prev) => ({ ...prev, [id]: {} }))
+    const baseWeekStart = getWeekStart()
+    const diffWeeks = Math.floor((targetDate.getTime() - baseWeekStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
+    setWeekOffset(clampWeekOffset(diffWeeks, 0, maxWeekOffset))
+    setSelectedClassId(id)
+    setShowClassModal(true)
   }
 
   return (
@@ -222,6 +296,10 @@ function App() {
                   onOpenClass={openAdminClass}
                   showClassModal={showClassModal}
                   onCloseClassModal={() => setShowClassModal(false)}
+                  weekOffset={weekOffset}
+                  maxWeekOffset={maxWeekOffset}
+                  onChangeWeek={handleChangeWeek}
+                  onCreateClass={handleCreateClass}
                 />
               )}
             </div>

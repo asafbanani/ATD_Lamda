@@ -20,7 +20,7 @@ function CalendarDayColumn({ day, date, slots, selectedClassId, onOpenClass }: C
       </div>
 
       <div className="slot-stack">
-        {slots.length === 0 && <div className="empty-slot">{"\u05d0\u05d9\u05df \u05db\u05d9\u05ea\u05d5\u05ea \u05d1\u05e7\u05d5\u05d5\u05da \u05d6\u05d4"}</div>}
+        {slots.length === 0 && <div className="empty-slot">{"\u05d0\u05d9\u05df \u05db\u05d9\u05ea\u05d5\u05ea \u05d1\u05ea\u05d0\u05e8\u05d9\u05da \u05d6\u05d4"}</div>}
         {slots.map((cls) => (
           <button
             key={cls.id}

@@ -22,7 +22,9 @@ export type ClassSlot = {
   name: string
   teacher: string
   day: string
+  date: string
   time: string
+  durationHours: number
   room: string
   students: string[]
 }

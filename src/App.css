@@ -235,6 +235,19 @@
   border-color: transparent;
 }
 
+.pill.primary {
+  background: linear-gradient(135deg, #3f6fd2, #2b4f95);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(47, 94, 176, 0.28);
+}
+
+.pill:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .pill.secondary {
   background: #ffffff;
 }
@@ -340,6 +353,32 @@ button {
 
 .section-head h2 {
   margin: 4px 0 6px;
+}
+
+.week-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.week-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: #f7f9ff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid #e2ebf9;
+}
+
+.week-label strong {
+  color: #1e2f57;
+}
+
+.week-buttons {
+  display: flex;
+  gap: 8px;
 }
 
 .chip-row {
@@ -603,6 +642,59 @@ select {
   background: #f9fbff;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.add-class-form-wrap {
+  width: 100%;
+}
+
+.add-class-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.add-class-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: #1e2f57;
+}
+
+.add-class-form input,
+.add-class-form select {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+.add-class-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.busy-times {
+  grid-column: 1 / -1;
+  border: 1px dashed #c7d6ee;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.busy-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 

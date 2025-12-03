@@ -1,7 +1,16 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import CalendarDayColumn from "../components/admin/CalendarDayColumn"
 import ClassDetails from "../components/admin/ClassDetails"
 import type { ClassSlot, Student } from "../models/types"
+import {
+  addDays,
+  formatDisplayDate,
+  fromISODate,
+  getWeekRangeLabel,
+  getWeekStart,
+  isDateInWeek,
+} from "../utils/dateUtils"
+import AddClassForm from "../components/admin/AddClassForm"
 
 type AdminDashboardProps = {
   classes: ClassSlot[]
@@ -10,42 +19,60 @@ type AdminDashboardProps = {
   onOpenClass: (classId: string) => void
   showClassModal: boolean
   onCloseClassModal: () => void
+  weekOffset: number
+  maxWeekOffset?: number
+  onChangeWeek: (nextOffset: number) => void
+  onCreateClass: (payload: { name: string; teacher: string; room: string; date: string; time: string; durationHours: number }) => void
 }
 
-const dayOrder = ["\u05e8\u05d0\u05e9\u05d5\u05df", "\u05e9\u05e0\u05d9", "\u05e9\u05dc\u05d9\u05e9\u05d9", "\u05e8\u05d1\u05d9\u05e2\u05d9", "\u05d7\u05de\u05d9\u05e9\u05d9", "\u05e9\u05d9\u05e9\u05d9"]
-const dayToIndex: Record<string, number> = {
-  ["\u05e8\u05d0\u05e9\u05d5\u05df"]: 0,
-  ["\u05e9\u05e0\u05d9"]: 1,
-  ["\u05e9\u05dc\u05d9\u05e9\u05d9"]: 2,
-  ["\u05e8\u05d1\u05d9\u05e2\u05d9"]: 3,
-  ["\u05d7\u05de\u05d9\u05e9\u05d9"]: 4,
-  ["\u05e9\u05d9\u05e9\u05d9"]: 5,
-  ["\u05e9\u05d1\u05ea"]: 6,
-}
+const dayOrder = ["\u05e8\u05d0\u05e9\u05d5\u05df", "\u05e9\u05e0\u05d9", "\u05e9\u05dc\u05d9\u05e9\u05d9", "\u05e8\u05d1\u05d9\u05e2\u05d9", "\u05d7\u05de\u05d9\u05e9\u05d9", "\u05e9\u05d9\u05e9\u05d9", "\u05e9\u05d1\u05ea"]
 
-function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showClassModal, onCloseClassModal }: AdminDashboardProps) {
+function AdminDashboard({
+  classes,
+  students,
+  selectedClassId,
+  onOpenClass,
+  showClassModal,
+  onCloseClassModal,
+  weekOffset,
+  maxWeekOffset = 4,
+  onChangeWeek,
+  onCreateClass,
+}: AdminDashboardProps) {
+  const [showAddModal, setShowAddModal] = useState(false)
+  const weekStart = useMemo(() => getWeekStart(new Date(), weekOffset), [weekOffset])
+
+  const classesThisWeek = useMemo(
+    () => classes.filter((cls) => isDateInWeek(cls.date, weekStart)),
+    [classes, weekStart],
+  )
+
   const selectedClass = useMemo(
-    () => classes.find((cls) => cls.id === selectedClassId) ?? classes[0],
-    [classes, selectedClassId],
+    () => classesThisWeek.find((cls) => cls.id === selectedClassId) ?? classesThisWeek[0],
+    [classesThisWeek, selectedClassId],
   )
 
   const calendar = useMemo(() => {
-    const extraDays = classes
+    const extraDays = classesThisWeek
       .map((cls) => cls.day)
       .filter((day, index, arr) => !dayOrder.includes(day) && arr.indexOf(day) === index)
     const orderedDays = [...dayOrder, ...extraDays]
 
     return orderedDays.map((day) => {
-      const slots = classes
+      const slots = classesThisWeek
         .filter((cls) => cls.day === day)
         .sort((a, b) => a.time.localeCompare(b.time))
+      const dayIndex = dayOrder.indexOf(day)
+      const dateFromWeek = dayIndex >= 0 ? addDays(weekStart, dayIndex) : null
+      const dateFromSlot = slots[0]?.date ? new Date(slots[0].date) : null
+      const date = dateFromWeek ?? dateFromSlot
       return {
         day,
         slots,
-        date: formatNextDate(day),
+        date: date ? formatDisplayDate(date) : null,
       }
     })
-  }, [classes])
+  }, [classesThisWeek, weekStart])
 
   const selectedStudents = useMemo(
     () =>
@@ -57,7 +84,8 @@ function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showC
     [selectedClass, students],
   )
 
-  const nextDate = selectedClass ? formatNextDate(selectedClass.day) : null
+  const nextDate = selectedClass ? formatDisplayDate(fromISODate(selectedClass.date)) : null
+  const weekLabel = getWeekRangeLabel(weekStart)
 
   return (
     <>
@@ -69,7 +97,33 @@ function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showC
               <h2>{"\u05dc\u05d5\u05d7 \u05d4\u05e9\u05d1\u05d5\u05e2"}</h2>
               <p className="muted">{"\u05db\u05d9\u05ea\u05d5\u05ea \u05e2\u05dd \u05de\u05d5\u05e8\u05d9\u05dd \u05d5\u05d1\u05dc\u05d5\u05d7\u05d9\u05dd \u05d4\u05ea\u05d0\u05d9\u05de\u05d9\u05dd"}</p>
             </div>
-            <div className="badge">{`\u05db\u05d9\u05ea\u05d5\u05ea ${classes.length}`}</div>
+            <div className="week-controls">
+              <div className="week-label">
+                <p className="eyebrow">{"\u05d8\u05d5\u05d5\u05d7 \u05e9\u05d1\u05d5\u05e2"}</p>
+                <strong>{weekLabel}</strong>
+              </div>
+              <div className="week-buttons">
+                <button
+                  type="button"
+                  className="pill ghost"
+                  disabled={weekOffset === 0}
+                  onClick={() => onChangeWeek(weekOffset - 1)}
+                >
+                  {"\u05e9\u05d1\u05d5\u05e2 \u05e7\u05d5\u05d3\u05dd"}
+                </button>
+                <button
+                  type="button"
+                  className="pill primary"
+                  disabled={weekOffset >= maxWeekOffset}
+                  onClick={() => onChangeWeek(Math.min(weekOffset + 1, maxWeekOffset))}
+                >
+                  {"\u05e9\u05d1\u05d5\u05e2 \u05d4\u05d1\u05d0"}
+                </button>
+                <button type="button" className="pill primary" onClick={() => setShowAddModal(true)}>
+                  {"\u05d4\u05d5\u05e1\u05e4\u05ea \u05db\u05d9\u05ea\u05d4"}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="calendar-grid">
@@ -86,6 +140,39 @@ function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showC
           </div>
         </section>
       </div>
+
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="\u05d4\u05d5\u05e1\u05e4\u05ea \u05db\u05d9\u05ea\u05d4 \u05d7\u05d3\u05e9\u05d4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">{"\u05d0\u05d3\u05de\u05d9\u05df"}</p>
+                <h3>{"\u05d4\u05d5\u05e1\u05e4\u05ea \u05db\u05d9\u05ea\u05d4 \u05dc\u05d9\u05d5\u05de\u05df \u05e0\u05d5\u05db\u05d7\u05d9"}</h3>
+                <p className="muted">{"\u05e9\u05d9\u05e0\u05d5\u05d9 \u05d9\u05d5\u05de\u05df \u05d0\u05d5 \u05d7\u05d5\u05d3\u05e9 \u05db\u05d3\u05d9 \u05d1\u05d9\u05e0\u05d5\u05d9 \u05e9\u05d1\u05d5\u05e2\u05d9\u05dd \u05d1\u05e2\u05ea\u05d9\u05d3"}</p>
+              </div>
+              <button type="button" className="pill ghost" onClick={() => setShowAddModal(false)}>
+                {"\u05e1\u05d2\u05d5\u05e8"}
+              </button>
+            </div>
+
+            <AddClassForm
+              classes={classes}
+              weekStart={weekStart}
+              maxWeekOffset={maxWeekOffset}
+              onCreate={(payload) => {
+                onCreateClass(payload)
+                setShowAddModal(false)
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {showClassModal && selectedClass && (
         <div className="modal-overlay" onClick={onCloseClassModal}>
@@ -114,18 +201,6 @@ function AdminDashboard({ classes, students, selectedClassId, onOpenClass, showC
       )}
     </>
   )
-}
-
-function formatNextDate(dayName: string) {
-  const targetIndex = dayToIndex[dayName]
-  if (targetIndex === undefined) return null
-
-  const today = new Date()
-  const delta = (targetIndex - today.getDay() + 7) % 7
-  const targetDate = new Date(today)
-  targetDate.setDate(today.getDate() + delta)
-
-  return targetDate.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })
 }
 
 export default AdminDashboard
