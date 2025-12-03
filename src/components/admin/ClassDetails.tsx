@@ -5,9 +5,19 @@ type ClassDetailsProps = {
   selectedClass?: ClassSlot
   selectedStudents: Student[]
   nextDate: string | null
+  onOpenAddStudent?: () => void
+  onRemoveStudent?: (studentId: string) => void
+  canAddStudent?: boolean
 }
 
-function ClassDetails({ selectedClass, selectedStudents, nextDate }: ClassDetailsProps) {
+function ClassDetails({
+  selectedClass,
+  selectedStudents,
+  nextDate,
+  onOpenAddStudent,
+  onRemoveStudent,
+  canAddStudent = false,
+}: ClassDetailsProps) {
   if (!selectedClass) {
     return (
       <div className="empty-state">
@@ -33,7 +43,19 @@ function ClassDetails({ selectedClass, selectedStudents, nextDate }: ClassDetail
       <div className="student-list">
         <div className="detail-row">
           <h4>{"\u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05d1\u05db\u05d9\u05ea\u05d4"}</h4>
-          <span className="badge subtle">{selectedClass.students.length}</span>
+          <div className="chip-row">
+            <span className="badge subtle">{selectedClass.students.length}</span>
+            {onOpenAddStudent && (
+              <button
+                type="button"
+                className="pill secondary"
+                onClick={onOpenAddStudent}
+                disabled={!canAddStudent}
+              >
+                {"\u05d4\u05d5\u05e1\u05e4\u05ea \u05ea\u05dc\u05de\u05d9\u05d3"}
+              </button>
+            )}
+          </div>
         </div>
         {selectedStudents.length === 0 && <p className="muted">{"\u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05d9\u05df \u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05e9\u05d9\u05d5\u05d7\u05dd"}</p>}
         <ul>
@@ -41,8 +63,15 @@ function ClassDetails({ selectedClass, selectedStudents, nextDate }: ClassDetail
             (student) =>
               student && (
                 <li key={student.id} className="student-chip">
-                  <strong>{student.fullName}</strong>
-                  <span className="muted">{student.phone}</span>
+                  <div className="student-meta">
+                    <strong>{student.fullName}</strong>
+                    <span className="muted">{student.phone}</span>
+                  </div>
+                  {onRemoveStudent && (
+                    <button type="button" className="pill ghost" onClick={() => onRemoveStudent(student.id)}>
+                      {"\u05d4\u05e1\u05e8"}
+                    </button>
+                  )}
                 </li>
               ),
           )}

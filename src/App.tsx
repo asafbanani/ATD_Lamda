@@ -11,6 +11,8 @@ import { clampWeekOffset, fromISODate, getDayNameFromDate, getWeekStart, isDateI
 
 function App() {
   const teacherName = "\u05d9\u05e2\u05dc \u05d1\u05e8\u05d2\u05e8"
+  const FULL_LESSON_COST = 120
+  const HALF_LESSON_COST = 60
   const [role, setRole] = useState<Role>("admin")
   const normalizeClass = (cls: ClassSlot): ClassSlot => ({
     ...cls,
@@ -108,6 +110,9 @@ function App() {
   }
 
   const addStudentToClass = (classId: string, studentId: string) => {
+    const targetClass = classes.find((cls) => cls.id === classId)
+    if (targetClass?.students.includes(studentId)) return
+
     setClasses((prev) =>
       prev.map((cls) => (cls.id === classId ? { ...cls, students: [...cls.students, studentId] } : cls)),
     )
@@ -119,6 +124,20 @@ function App() {
         [studentId]: false,
       },
     }))
+  }
+
+  const removeStudentFromClass = (classId: string, studentId: string) => {
+    setClasses((prev) =>
+      prev.map((cls) =>
+        cls.id === classId ? { ...cls, students: cls.students.filter((id) => id !== studentId) } : cls,
+      ),
+    )
+
+    setAttendance((prev) => {
+      const next = { ...(prev[classId] ?? {}) }
+      delete next[studentId]
+      return { ...prev, [classId]: next }
+    })
   }
 
   const applyPayments = (payments: PaymentAction[]) => {
@@ -137,6 +156,23 @@ function App() {
   const updateStudent = (id: string, data: Partial<Student>) => {
     setStudents((prev) =>
       prev.map((student) => (student.id === id ? { ...student, ...data, fullName: data.fullName ?? student.fullName } : student)),
+    )
+  }
+
+  const addChargesToAccounts = (charges: { studentId: string; type: "half" | "full" }[]) => {
+    if (charges.length === 0) return
+    const totalsByStudent = charges.reduce<Record<string, number>>((acc, charge) => {
+      const amount = charge.type === "full" ? FULL_LESSON_COST : HALF_LESSON_COST
+      acc[charge.studentId] = (acc[charge.studentId] ?? 0) + amount
+      return acc
+    }, {})
+
+    setStudents((prev) =>
+      prev.map((student) => {
+        const delta = totalsByStudent[student.id]
+        if (!delta) return student
+        return { ...student, balance: (student.balance ?? 0) + delta }
+      }),
     )
   }
 
@@ -300,6 +336,8 @@ function App() {
                   maxWeekOffset={maxWeekOffset}
                   onChangeWeek={handleChangeWeek}
                   onCreateClass={handleCreateClass}
+                  onAddStudentToClass={addStudentToClass}
+                  onRemoveStudentFromClass={removeStudentFromClass}
                 />
               )}
             </div>
@@ -316,6 +354,7 @@ function App() {
             availableStudents={availableStudentsForSelected}
             studentsLookup={students}
             onClearClass={clearClassAttendance}
+            onSendCharges={addChargesToAccounts}
           />
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import CalendarDayColumn from "../components/admin/CalendarDayColumn"
 import ClassDetails from "../components/admin/ClassDetails"
 import type { ClassSlot, Student } from "../models/types"
@@ -23,6 +23,8 @@ type AdminDashboardProps = {
   maxWeekOffset?: number
   onChangeWeek: (nextOffset: number) => void
   onCreateClass: (payload: { name: string; teacher: string; room: string; date: string; time: string; durationHours: number }) => void
+  onAddStudentToClass: (classId: string, studentId: string) => void
+  onRemoveStudentFromClass: (classId: string, studentId: string) => void
 }
 
 const dayOrder = ["\u05e8\u05d0\u05e9\u05d5\u05df", "\u05e9\u05e0\u05d9", "\u05e9\u05dc\u05d9\u05e9\u05d9", "\u05e8\u05d1\u05d9\u05e2\u05d9", "\u05d7\u05de\u05d9\u05e9\u05d9", "\u05e9\u05d9\u05e9\u05d9", "\u05e9\u05d1\u05ea"]
@@ -38,8 +40,13 @@ function AdminDashboard({
   maxWeekOffset = 4,
   onChangeWeek,
   onCreateClass,
+  onAddStudentToClass,
+  onRemoveStudentFromClass,
 }: AdminDashboardProps) {
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false)
+  const [studentQuery, setStudentQuery] = useState("")
+  const [selectedStudentId, setSelectedStudentId] = useState("")
   const weekStart = useMemo(() => getWeekStart(new Date(), weekOffset), [weekOffset])
 
   const classesThisWeek = useMemo(
@@ -51,6 +58,20 @@ function AdminDashboard({
     () => classesThisWeek.find((cls) => cls.id === selectedClassId) ?? classesThisWeek[0],
     [classesThisWeek, selectedClassId],
   )
+
+  useEffect(() => {
+    if (!showClassModal) {
+      setShowAddStudentModal(false)
+      setStudentQuery("")
+      setSelectedStudentId("")
+    }
+  }, [showClassModal])
+
+  useEffect(() => {
+    setShowAddStudentModal(false)
+    setStudentQuery("")
+    setSelectedStudentId("")
+  }, [selectedClass?.id])
 
   const calendar = useMemo(() => {
     const extraDays = classesThisWeek
@@ -83,6 +104,30 @@ function AdminDashboard({
         : [],
     [selectedClass, students],
   )
+
+  const availableStudents = useMemo(
+    () => (selectedClass ? students.filter((student) => !selectedClass.students.includes(student.id)) : []),
+    [selectedClass, students],
+  )
+
+  const filteredAvailableStudents = useMemo(() => {
+    const query = studentQuery.trim().toLowerCase()
+    if (!query) return availableStudents
+    return availableStudents.filter(
+      (student) =>
+        student.fullName.toLowerCase().includes(query) ||
+        student.phone.includes(query) ||
+        student.email?.toLowerCase().includes(query),
+    )
+  }, [availableStudents, studentQuery])
+
+  const handleAddStudentToSelectedClass = () => {
+    if (!selectedClass || !selectedStudentId) return
+    onAddStudentToClass(selectedClass.id, selectedStudentId)
+    setShowAddStudentModal(false)
+    setStudentQuery("")
+    setSelectedStudentId("")
+  }
 
   const nextDate = selectedClass ? formatDisplayDate(fromISODate(selectedClass.date)) : null
   const weekLabel = getWeekRangeLabel(weekStart)
@@ -195,7 +240,87 @@ function AdminDashboard({
                 {"\u05e1\u05d2\u05d5\u05e8"}
               </button>
             </div>
-            <ClassDetails selectedClass={selectedClass} selectedStudents={selectedStudents} nextDate={nextDate} />
+            <ClassDetails
+              selectedClass={selectedClass}
+              selectedStudents={selectedStudents}
+              nextDate={nextDate}
+              onOpenAddStudent={() => setShowAddStudentModal(true)}
+              onRemoveStudent={(studentId) => onRemoveStudentFromClass(selectedClass.id, studentId)}
+              canAddStudent={availableStudents.length > 0}
+            />
+          </div>
+        </div>
+      )}
+
+      {showAddStudentModal && selectedClass && (
+        <div className="modal-overlay" onClick={() => setShowAddStudentModal(false)}>
+          <div
+            className="modal-card small"
+            role="dialog"
+            aria-modal="true"
+            aria-label="\u05d4\u05d5\u05e1\u05e4\u05ea \u05ea\u05dc\u05de\u05d9\u05d3 \u05dc\u05db\u05d9\u05ea\u05d4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">{"\u05d4\u05d5\u05e1\u05e4\u05ea \u05ea\u05dc\u05de\u05d9\u05d3"}</p>
+                <h3>{selectedClass.name}</h3>
+                <p className="muted">{"\u05d1\u05d7\u05e8\u05d5 \u05ea\u05dc\u05de\u05d9\u05d3 \u05e7\u05d9\u05d9\u05dd \u05d5\u05d4\u05d5\u05e1\u05d9\u05e4\u05d5 \u05d0\u05d5\u05ea\u05d5 \u05e4\u05d4"}</p>
+              </div>
+              <button type="button" className="pill ghost" onClick={() => setShowAddStudentModal(false)}>
+                {"\u05e1\u05d2\u05d5\u05e8"}
+              </button>
+            </div>
+
+            {availableStudents.length === 0 ? (
+              <p className="muted">{"\u05d0\u05d9\u05df \u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05e4\u05e0\u05d5\u05d9\u05d9\u05dd \u05d4\u05e8\u05d2\u05e2"}</p>
+            ) : (
+              <div className="add-student-card">
+                <div className="form-grid">
+                  <label>
+                    {"\u05d7\u05d9\u05e4\u05d5\u05e9 \u05de\u05d4\u05d9\u05e8\u05d9 \u05d8\u05dc\u05de\u05d9\u05d3"}
+                    <div className="search-box">
+                      <input
+                        type="text"
+                        placeholder={"\u05d7\u05e4\u05e9 \u05e9\u05dd / \u05d8\u05dc\u05e4\u05d5\u05df / \u05d0\u05d9\u05de\u05d9\u05d9\u05dc"}
+                        value={studentQuery}
+                        onChange={(event) => {
+                          setStudentQuery(event.target.value)
+                          setSelectedStudentId("")
+                        }}
+                        list="admin-student-options"
+                      />
+                      <datalist id="admin-student-options">
+                        {availableStudents.map((student) => (
+                          <option key={student.id} value={`${student.fullName} | ${student.phone}`} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </label>
+                  <label>
+                    {"\u05d1\u05d7\u05e8 \u05ea\u05dc\u05de\u05d9\u05d3"}
+                    <select value={selectedStudentId} onChange={(event) => setSelectedStudentId(event.target.value)}>
+                      <option value="">{'\u05d1\u05d7\u05e8\u05d5 \u05ea\u05dc\u05de\u05d9\u05d3'}</option>
+                      {filteredAvailableStudents.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.fullName} | {student.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="detail-row">
+                  <p className="muted">
+                    {filteredAvailableStudents.length === 0
+                      ? "\u05d0\u05d9\u05df \u05ea\u05d5\u05e6\u05d0\u05d5\u05ea \u05dc\u05d7\u05d9\u05e4\u05d5\u05e9"
+                      : `${filteredAvailableStudents.length} \u05ea\u05dc\u05de\u05d9\u05d3\u05d9\u05dd \u05d6\u05de\u05d9\u05e0\u05d9\u05dd`}
+                  </p>
+                  <button type="button" className="pill primary" disabled={!selectedStudentId} onClick={handleAddStudentToSelectedClass}>
+                    {"\u05d4\u05d5\u05e1\u05e3"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

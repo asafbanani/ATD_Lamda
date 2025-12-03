@@ -14,6 +14,7 @@ type TeacherViewProps = {
   availableStudents: Student[]
   studentsLookup: Student[]
   onClearClass: (classId: string) => void
+  onSendCharges: (charges: { studentId: string; type: "half" | "full" }[]) => void
 }
 
 function TeacherView({
@@ -27,6 +28,7 @@ function TeacherView({
   availableStudents,
   studentsLookup,
   onClearClass,
+  onSendCharges,
 }: TeacherViewProps) {
   const selectedClass = classes.find((cls) => cls.id === selectedClassId)
   const [pendingCharges, setPendingCharges] = useState<Record<string, "half" | "full">>({})
@@ -148,10 +150,19 @@ function TeacherView({
             className="pill primary"
             disabled={Object.keys(pendingCharges).length === 0}
             onClick={() => {
-              // future: send to admin ledger with pendingCharges
+              if (!selectedClass) return
+              const charges = Object.entries(pendingCharges)
+                .filter(([key]) => key.startsWith(`${selectedClassId}-`))
+                .map(([key, type]) => {
+                  const dashIndex = key.indexOf("-")
+                  const studentId = dashIndex >= 0 ? key.slice(dashIndex + 1) : key
+                  return { studentId, type }
+                })
+              if (charges.length === 0) return
+              onSendCharges(charges)
               setSentCharges((prev) => ({ ...prev, ...pendingCharges }))
               setPendingCharges({})
-              setSendMessage("\u05e2\u05d3\u05db\u05d5\u05df \u05e0\u05d5\u05db\u05d7\u05d5\u05ea \u05e0\u05e9\u05dc\u05d7 \u05dc\u05d0\u05d3\u05de\u05d9\u05df")
+              setSendMessage("\u05d4\u05d7\u05d9\u05d9\u05d5\u05d1\u05d9\u05dd \u05e0\u05db\u05dc\u05dc\u05d5 \u05dc\u05db\u05e8\u05d8\u05e1\u05ea \u05d4\u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea")
             }}
           >
             {"\u05e9\u05dc\u05d7 \u05d7\u05d9\u05d5\u05d1\u05d9\u05dd \u05de\u05de\u05ea\u05d9\u05e0\u05d9\u05dd"}
