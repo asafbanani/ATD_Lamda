@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { FormEvent, useEffect, useMemo, useState } from "react"
 import "./App.css"
 import logo from "./assets/atd_logo.png"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
@@ -10,11 +10,17 @@ import TeacherView from "./screens/TeacherView"
 import { clampWeekOffset, fromISODate, getDayNameFromDate, getWeekStart, isDateInWeek } from "./utils/dateUtils"
 
 function App() {
+  const OWNER_USERNAME = "owner"
+  const OWNER_PASSWORD = "owner123"
   const teacherName = "\u05d9\u05e2\u05dc \u05d1\u05e8\u05d2\u05e8"
+  const adminName = "owner"
   const FULL_LESSON_COST = 120
   const HALF_LESSON_COST = 60
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loginForm, setLoginForm] = useState({ username: "", password: "" })
+  const [loginError, setLoginError] = useState("")
   const [role, setRole] = useState<Role>("admin")
-  const currentUserName = role === "admin" ? "\u05d0\u05d3\u05de\u05d9\u05df" : teacherName
+  const currentUserName = role === "admin" ? adminName : teacherName
   const normalizeClass = (cls: ClassSlot): ClassSlot => ({
     ...cls,
     durationHours: cls.durationHours && cls.durationHours > 0 ? cls.durationHours : 1,
@@ -248,6 +254,79 @@ function App() {
     setWeekOffset(clampWeekOffset(diffWeeks, 0, maxWeekOffset))
     setSelectedClassId(id)
     setShowClassModal(true)
+  }
+
+  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const isValid =
+      loginForm.username.trim().toLowerCase() === OWNER_USERNAME &&
+      loginForm.password.trim() === OWNER_PASSWORD
+
+    if (!isValid) {
+      setLoginError("\u05e4\u05e8\u05d8\u05d9 \u05db\u05e0\u05d9\u05e1\u05d4 \u05e9\u05d2\u05d5\u05d9\u05d9\u05dd")
+      return
+    }
+
+    setIsAuthenticated(true)
+    setRole("admin")
+    setLoginError("")
+    setLoginForm({ username: "", password: "" })
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="page">
+        <div className="glow glow-1" />
+        <div className="glow glow-2" />
+        <div className="login-shell">
+          <div className="login-header">
+            <div className="login-brand">
+              <img src={logo} alt="\u05dc\u05d5\u05d2\u05d5 ATD \u05dc\u05de\u05d3\u05d0" />
+              <p className="eyebrow">ATD | Lambda</p>
+            </div>
+            <div>
+            </div>
+          </div>
+
+          <form className="login-form" onSubmit={handleLogin}>
+            <label className="login-field">
+              <span>{"\u05e9\u05dd \u05de\u05e9\u05ea\u05de\u05e9"}</span>
+              <input
+                type="text"
+                value={loginForm.username}
+                onChange={(e) => {
+                  setLoginForm((prev) => ({ ...prev, username: e.target.value }))
+                  setLoginError("")
+                }}
+                placeholder="username"
+                autoFocus
+              />
+            </label>
+
+            <label className="login-field">
+              <span>{"\u05e1\u05d9\u05e1\u05de\u05d0"}</span>
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(e) => {
+                  setLoginForm((prev) => ({ ...prev, password: e.target.value }))
+                  setLoginError("")
+                }}
+                placeholder="password"
+              />
+            </label>
+
+            {loginError && <p className="error-text">{loginError}</p>}
+
+            <div className="login-actions">
+              <button type="submit" className="pill primary">
+                {"\u05dc\u05d4\u05d9\u05db\u05e0\u05e1"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (
