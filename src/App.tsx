@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import type React from "react"
 import "./App.css"
 import logo from "./assets/atd_logo.png"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
@@ -7,7 +8,7 @@ import AdminDashboard from "./screens/AdminDashboard"
 import AccountsView from "./screens/AccountsView"
 import StudentsView from "./screens/StudentsView"
 import TeacherView from "./screens/TeacherView"
-import { clampWeekOffset, fromISODate, getDayNameFromDate, getWeekStart, isDateInWeek } from "./utils/dateUtils"
+import { clampWeekOffset, getDayNameFromDate, getWeekStart, isDateInWeek } from "./utils/dateUtils"
 
 function App() {
   const OWNER_USERNAME = "owner"
@@ -256,7 +257,7 @@ function App() {
     setShowClassModal(true)
   }
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const isValid =
       loginForm.username.trim().toLowerCase() === OWNER_USERNAME &&
