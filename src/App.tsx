@@ -14,6 +14,7 @@ function App() {
   const FULL_LESSON_COST = 120
   const HALF_LESSON_COST = 60
   const [role, setRole] = useState<Role>("admin")
+  const currentUserName = role === "admin" ? "\u05d0\u05d3\u05de\u05d9\u05df" : teacherName
   const normalizeClass = (cls: ClassSlot): ClassSlot => ({
     ...cls,
     durationHours: cls.durationHours && cls.durationHours > 0 ? cls.durationHours : 1,
@@ -256,12 +257,34 @@ function App() {
 
       <div className="app-shell">
         <header className="topbar">
-          <div>
+          <div className="title-block">
             <p className="eyebrow">ATD | Lambda</p>
             <h1>{"\u05de\u05e8\u05db\u05d6 \u05d4\u05e9\u05dc\u05d9\u05d8\u05d4"}</h1>
           </div>
 
           <div className="top-actions">
+            <div className="user-notify">
+              <button type="button" className="icon-button bell" aria-label="\u05d4\u05ea\u05e8\u05d0\u05d5\u05ea">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 3a5 5 0 0 0-5 5v2.586l-.707.707A1 1 0 0 0 7 13h10a1 1 0 0 0 .707-1.707L17 10.586V8a5 5 0 0 0-5-5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M10 17a2 2 0 1 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <span className="notify-dot" aria-hidden="true" />
+              </button>
+              <div className="user-chip">
+                <span className="avatar-circle">{currentUserName.charAt(0)}</span>
+                <div className="user-meta">
+                  <span className="user-label">{"\u05de\u05d7\u05d5\u05d1\u05e8/ת"}</span>
+                  <strong className="user-name">{currentUserName}</strong>
+                </div>
+              </div>
+            </div>
             <div className="role-switch">
               <button
                 type="button"
