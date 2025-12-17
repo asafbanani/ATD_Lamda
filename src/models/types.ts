@@ -30,3 +30,11 @@ export type ClassSlot = {
 }
 
 export type AttendanceMap = Record<string, Record<string, boolean>>
+
+export type NotificationItem = {
+  id: string
+  title: string
+  message: string
+  createdAt: string
+  read: boolean
+}

@@ -14,7 +14,12 @@ type TeacherViewProps = {
   availableStudents: Student[]
   studentsLookup: Student[]
   onClearClass: (classId: string) => void
-  onSendCharges: (charges: { studentId: string; type: "half" | "full" }[]) => void
+  onSendCharges: (payload: {
+    classId: string
+    className?: string
+    teacherName?: string
+    charges: { studentId: string; type: "half" | "full" }[]
+  }) => void
 }
 
 function TeacherView({
@@ -159,7 +164,12 @@ function TeacherView({
                   return { studentId, type }
                 })
               if (charges.length === 0) return
-              onSendCharges(charges)
+              onSendCharges({
+                classId: selectedClassId,
+                className: selectedClass?.name,
+                teacherName,
+                charges,
+              })
               setSentCharges((prev) => ({ ...prev, ...pendingCharges }))
               setPendingCharges({})
               setSendMessage("\u05d4\u05d7\u05d9\u05d9\u05d5\u05d1\u05d9\u05dd \u05e0\u05db\u05dc\u05dc\u05d5 \u05dc\u05db\u05e8\u05d8\u05e1\u05ea \u05d4\u05d7\u05e9\u05d1\u05d5\u05e0\u05d5\u05ea")

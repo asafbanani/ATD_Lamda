@@ -3,12 +3,13 @@ import type React from "react"
 import "./App.css"
 import logo from "./assets/atd_logo.png"
 import { initialAttendance, initialClasses, initialStudents } from "./data/seed"
-import type { AttendanceMap, ClassSlot, PaymentAction, Role, Student } from "./models/types"
+import type { AttendanceMap, ClassSlot, NotificationItem, PaymentAction, Role, Student } from "./models/types"
 import AdminDashboard from "./screens/AdminDashboard"
 import AccountsView from "./screens/AccountsView"
 import StudentsView from "./screens/StudentsView"
 import TeacherView from "./screens/TeacherView"
 import { clampWeekOffset, getDayNameFromDate, getWeekStart, isDateInWeek } from "./utils/dateUtils"
+import UserNotifications from "./components/layout/UserNotifications"
 
 function App() {
   const OWNER_USERNAME = "owner"
@@ -22,6 +23,7 @@ function App() {
   const [loginError, setLoginError] = useState("")
   const [role, setRole] = useState<Role>("admin")
   const currentUserName = role === "admin" ? adminName : teacherName
+  const currentUserLabel = role === "admin" ? "\u05d0\u05d3\u05de\u05d9\u05df" : "\u05de\u05d5\u05e8\u05d4"
   const normalizeClass = (cls: ClassSlot): ClassSlot => ({
     ...cls,
     durationHours: cls.durationHours && cls.durationHours > 0 ? cls.durationHours : 1,
@@ -35,6 +37,7 @@ function App() {
   const [adminView, setAdminView] = useState<"calendar" | "accounts" | "students">("calendar")
   const [weekOffset, setWeekOffset] = useState(0)
   const maxWeekOffset = 4
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
 
   const weekStart = useMemo(() => getWeekStart(new Date(), weekOffset), [weekOffset])
 
@@ -72,6 +75,11 @@ function App() {
     if (!selectedClass) return []
     return students.filter((student) => !selectedClass.students.includes(student.id))
   }, [students, selectedClass])
+
+  const studentNameById = useMemo(
+    () => Object.fromEntries(students.map((student) => [student.id, student.fullName])),
+    [students],
+  )
 
   const menuItems = useMemo(
     () => [
@@ -167,6 +175,10 @@ function App() {
     )
   }
 
+  const markAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })))
+  }
+
   const addChargesToAccounts = (charges: { studentId: string; type: "half" | "full" }[]) => {
     if (charges.length === 0) return
     const totalsByStudent = charges.reduce<Record<string, number>>((acc, charge) => {
@@ -182,6 +194,31 @@ function App() {
         return { ...student, balance: (student.balance ?? 0) + delta }
       }),
     )
+  }
+
+  const handleSendCharges = (payload: {
+    classId: string
+    className?: string
+    teacherName?: string
+    charges: { studentId: string; type: "half" | "full" }[]
+  }) => {
+    if (payload.charges.length === 0) return
+    addChargesToAccounts(payload.charges)
+    const now = Date.now()
+    const nextNotifications: NotificationItem[] = payload.charges.map((charge, index) => {
+      const studentName = studentNameById[charge.studentId] ?? "\u05ea\u05dc\u05de\u05d9\u05d3"
+      const chargeLabel = charge.type === "full" ? "\u05e9\u05d9\u05e2\u05d5\u05e8 \u05de\u05dc\u05d0" : "\u05d7\u05e6\u05d9 \u05e9\u05d9\u05e2\u05d5\u05e8"
+      const classLabel = payload.className ? ` | ${payload.className}` : ""
+      const teacherLabel = payload.teacherName ? ` | \u05d0\u05d5\u05e9\u05e8 \u05e2\"\u05d9 ${payload.teacherName}` : ""
+      return {
+        id: `n-${payload.classId}-${charge.studentId}-${now + index}`,
+        title: "\u05e0\u05d5\u05db\u05d7\u05d5\u05ea \u05e9\u05d0\u05d5\u05e9\u05e8\u05d5",
+        message: `${studentName} - ${chargeLabel}${classLabel}${teacherLabel}`,
+        createdAt: new Date(now + index).toISOString(),
+        read: false,
+      }
+    })
+    setNotifications((prev) => [...nextNotifications, ...prev])
   }
 
   const addNewStudent = (data: {
@@ -343,28 +380,12 @@ function App() {
           </div>
 
           <div className="top-actions">
-            <div className="user-notify">
-              <button type="button" className="icon-button bell" aria-label="\u05d4\u05ea\u05e8\u05d0\u05d5\u05ea">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 3a5 5 0 0 0-5 5v2.586l-.707.707A1 1 0 0 0 7 13h10a1 1 0 0 0 .707-1.707L17 10.586V8a5 5 0 0 0-5-5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M10 17a2 2 0 1 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-                <span className="notify-dot" aria-hidden="true" />
-              </button>
-              <div className="user-chip">
-                <span className="avatar-circle">{currentUserName.charAt(0)}</span>
-                <div className="user-meta">
-                  <span className="user-label">{"\u05de\u05d7\u05d5\u05d1\u05e8/ת"}</span>
-                  <strong className="user-name">{currentUserName}</strong>
-                </div>
-              </div>
-            </div>
+            <UserNotifications
+              userName={currentUserName}
+              userLabel={currentUserLabel}
+              notifications={notifications}
+              onMarkAllRead={markAllNotificationsRead}
+            />
             <div className="role-switch">
               <button
                 type="button"
@@ -457,7 +478,7 @@ function App() {
             availableStudents={availableStudentsForSelected}
             studentsLookup={students}
             onClearClass={clearClassAttendance}
-            onSendCharges={addChargesToAccounts}
+            onSendCharges={handleSendCharges}
           />
         )}
       </div>
